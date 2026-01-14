@@ -6,10 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-* {
-    box-sizing: border-box;
-}
-
 body {
     margin: 0;
     overflow: hidden;
@@ -27,8 +23,7 @@ body {
     position: absolute;
     width: 55px;
     height: 55px;
-    left: 20%;
-    top: 40%;
+    left: 120px;
     background-image: url("https://i.ibb.co/q3hRnjrT/nishnavi2.jpg");
     background-size: cover;
     background-position: center;
@@ -50,7 +45,6 @@ body {
     font-weight: bold;
     color: #fff;
     text-shadow: 2px 2px 0 #000;
-    z-index: 10;
 }
 
 #title {
@@ -68,7 +62,6 @@ body {
     bottom: 40px;
     width: 100%;
     text-align: center;
-    color: #333;
 }
 </style>
 </head>
@@ -86,7 +79,7 @@ const bird = document.getElementById("bird");
 const game = document.getElementById("game");
 const scoreEl = document.getElementById("score");
 
-let birdY = window.innerHeight * 0.4;
+let birdY = window.innerHeight / 2;
 let velocity = 0;
 const gravity = 0.7;
 const jumpPower = -11;
@@ -110,26 +103,28 @@ document.addEventListener("keydown", e => {
 function createPipe() {
     const gap = 180;
     const minHeight = 60;
-    const maxHeight = window.innerHeight - gap - minHeight;
-    const topHeight = Math.random() * maxHeight + minHeight;
+    const topHeight =
+        Math.random() * (window.innerHeight - gap - minHeight) + minHeight;
+
+    const x = window.innerWidth;
 
     const topPipe = document.createElement("div");
     topPipe.className = "pipe";
     topPipe.style.height = topHeight + "px";
     topPipe.style.top = "0px";
-    topPipe.style.left = "100vw";
+    topPipe.style.left = x + "px";
 
     const bottomPipe = document.createElement("div");
     bottomPipe.className = "pipe";
     bottomPipe.style.height =
         window.innerHeight - topHeight - gap + "px";
     bottomPipe.style.bottom = "0px";
-    bottomPipe.style.left = "100vw";
+    bottomPipe.style.left = x + "px";
 
     game.appendChild(topPipe);
     game.appendChild(bottomPipe);
 
-    pipes.push({ topPipe, bottomPipe, passed: false });
+    pipes.push({ topPipe, bottomPipe, x, passed: false });
 }
 
 setInterval(createPipe, 2000);
@@ -146,11 +141,9 @@ function gameLoop() {
     }
 
     pipes.forEach(pipe => {
-        const left =
-            pipe.topPipe.getBoundingClientRect().left - 3;
-
-        pipe.topPipe.style.left = left + "px";
-        pipe.bottomPipe.style.left = left + "px";
+        pipe.x -= 3;
+        pipe.topPipe.style.left = pipe.x + "px";
+        pipe.bottomPipe.style.left = pipe.x + "px";
 
         const birdRect = bird.getBoundingClientRect();
         const topRect = pipe.topPipe.getBoundingClientRect();
@@ -165,7 +158,7 @@ function gameLoop() {
             endGame();
         }
 
-        if (!pipe.passed && birdRect.left > topRect.right) {
+        if (!pipe.passed && pipe.x + 70 < 120) {
             pipe.passed = true;
             score++;
             scoreEl.innerText = score;
