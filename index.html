@@ -6,10 +6,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+* {
+    box-sizing: border-box;
+}
+
 body {
     margin: 0;
     overflow: hidden;
-    background: linear-gradient(#70c5ce, #ffffff);
+    background: linear-gradient(#4fa3d1, #bde7ff);
     font-family: Arial, sans-serif;
 }
 
@@ -21,19 +25,20 @@ body {
 
 #bird {
     position: absolute;
-    width: 50px;
-    height: 50px;
+    width: 55px;
+    height: 55px;
     left: 20%;
     top: 40%;
-    background-image: url("https://i.ibb.co/PGDr30Zg/nishanviii.jpg");
+    background-image: url("https://i.ibb.co/q3hRnjrT/nishnavi2.jpg");
     background-size: cover;
+    background-position: center;
     border-radius: 50%;
 }
 
 .pipe {
     position: absolute;
-    width: 60px;
-    background: #4CAF50;
+    width: 70px;
+    background: #3cb371;
 }
 
 #score {
@@ -41,15 +46,16 @@ body {
     top: 20px;
     width: 100%;
     text-align: center;
-    font-size: 32px;
+    font-size: 36px;
     font-weight: bold;
     color: #fff;
     text-shadow: 2px 2px 0 #000;
+    z-index: 10;
 }
 
 #title {
     position: absolute;
-    top: 80px;
+    top: 70px;
     width: 100%;
     text-align: center;
     font-size: 22px;
@@ -72,7 +78,7 @@ body {
     <div id="score">0</div>
     <div id="title">Flappy Bird for Nishanvi 💖</div>
     <div id="bird"></div>
-    <div id="hint">Click / Tap / Space to Fly</div>
+    <div id="hint">Tap / Click / Space to Fly</div>
 </div>
 
 <script>
@@ -80,16 +86,20 @@ const bird = document.getElementById("bird");
 const game = document.getElementById("game");
 const scoreEl = document.getElementById("score");
 
-let birdTop = 40;
-let gravity = 0.6;
+let birdY = window.innerHeight * 0.4;
 let velocity = 0;
-let score = 0;
+const gravity = 0.7;
+const jumpPower = -11;
+
 let pipes = [];
+let score = 0;
 let gameOver = false;
+
+bird.style.top = birdY + "px";
 
 function jump() {
     if (gameOver) location.reload();
-    velocity = -10;
+    velocity = jumpPower;
 }
 
 document.addEventListener("click", jump);
@@ -98,20 +108,23 @@ document.addEventListener("keydown", e => {
 });
 
 function createPipe() {
-    const gap = 160;
-    const topHeight = Math.random() * 250 + 50;
+    const gap = 180;
+    const minHeight = 60;
+    const maxHeight = window.innerHeight - gap - minHeight;
+    const topHeight = Math.random() * maxHeight + minHeight;
 
     const topPipe = document.createElement("div");
     topPipe.className = "pipe";
     topPipe.style.height = topHeight + "px";
-    topPipe.style.top = "0";
-    topPipe.style.left = "100%";
+    topPipe.style.top = "0px";
+    topPipe.style.left = "100vw";
 
     const bottomPipe = document.createElement("div");
     bottomPipe.className = "pipe";
-    bottomPipe.style.height = (window.innerHeight - topHeight - gap) + "px";
-    bottomPipe.style.bottom = "0";
-    bottomPipe.style.left = "100%";
+    bottomPipe.style.height =
+        window.innerHeight - topHeight - gap + "px";
+    bottomPipe.style.bottom = "0px";
+    bottomPipe.style.left = "100vw";
 
     game.appendChild(topPipe);
     game.appendChild(bottomPipe);
@@ -119,21 +132,25 @@ function createPipe() {
     pipes.push({ topPipe, bottomPipe, passed: false });
 }
 
-setInterval(createPipe, 2200);
+setInterval(createPipe, 2000);
 
 function gameLoop() {
     if (gameOver) return;
 
     velocity += gravity;
-    birdTop += velocity;
-    bird.style.top = birdTop + "%";
+    birdY += velocity;
+    bird.style.top = birdY + "px";
 
-    if (birdTop < 0 || birdTop > 90) endGame();
+    if (birdY < 0 || birdY > window.innerHeight - 55) {
+        endGame();
+    }
 
     pipes.forEach(pipe => {
-        const left = parseFloat(pipe.topPipe.style.left);
-        pipe.topPipe.style.left = left - 0.5 + "%";
-        pipe.bottomPipe.style.left = left - 0.5 + "%";
+        const left =
+            pipe.topPipe.getBoundingClientRect().left - 3;
+
+        pipe.topPipe.style.left = left + "px";
+        pipe.bottomPipe.style.left = left + "px";
 
         const birdRect = bird.getBoundingClientRect();
         const topRect = pipe.topPipe.getBoundingClientRect();
@@ -142,7 +159,8 @@ function gameLoop() {
         if (
             birdRect.right > topRect.left &&
             birdRect.left < topRect.right &&
-            (birdRect.top < topRect.bottom || birdRect.bottom > bottomRect.top)
+            (birdRect.top < topRect.bottom ||
+             birdRect.bottom > bottomRect.top)
         ) {
             endGame();
         }
